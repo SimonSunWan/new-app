@@ -40,7 +40,6 @@ const verified = ref(false);
 const slideVerifyWidth = ref(350);
 
 const verifySuccess = () => {
-  console.log('verifySuccess');
   verified.value = true;
 };
 

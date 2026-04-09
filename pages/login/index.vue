@@ -48,11 +48,10 @@
 
 <script setup>
 import { ref, reactive, onMounted } from "vue";
-import { useToast } from "wot-design-uni";
 import { login, getUserInfo } from "@/api/userApi.js";
 import { userStore } from "@/store/userStore.js";
-import { HttpError } from "@/utils/request.js";
 import { storage } from "@/utils/storage.js";
+import { useToast } from "wot-design-uni";
 
 const toast = useToast();
 const loading = ref(false);
@@ -77,7 +76,7 @@ const onRememberChange = ({ value }) => {
   }
 };
 
-const handleLogin = async () => {
+const handleLogin = () => {
   const username = formData.username?.trim();
   const password = formData.password?.trim();
 
@@ -88,35 +87,32 @@ const handleLogin = async () => {
 
   loading.value = true;
 
-  try {
-    const loginResponse = await login({
-      userName: username,
-      password: password,
+  login({ userName: username, password: password })
+    .then((loginResponse) => {
+      const { accessToken, tokenType } = loginResponse;
+      userStore.setToken(`${tokenType} ${accessToken}`);
+
+      return getUserInfo();
+    })
+    .then((userInfo) => {
+      userStore.setUserInfo(userInfo);
+      userStore.setLoginStatus(true);
+
+      if (rememberPassword.value) {
+        storage.setRememberedAccount(username, password);
+      } else {
+        storage.clearRememberedAccount();
+      }
+
+      toast.success("登录成功");
+
+      setTimeout(() => {
+        uni.reLaunch({ url: "/pages/home/index" });
+      }, 1000);
+    })
+    .finally(() => {
+      loading.value = false;
     });
-
-    const { accessToken, tokenType } = loginResponse;
-    userStore.setToken(`${tokenType} ${accessToken}`);
-
-    const userInfo = await getUserInfo();
-    userStore.setUserInfo(userInfo);
-    userStore.setLoginStatus(true);
-
-    if (rememberPassword.value) {
-      storage.setRememberedAccount(username, password);
-    } else {
-      storage.clearRememberedAccount();
-    }
-
-    toast.success("登录成功");
-
-    setTimeout(() => {
-      uni.reLaunch({ url: "/pages/home/index" });
-    }, 1000);
-  } catch (error) {
-    toast.error(error instanceof HttpError ? error.message : "登录失败，请稍后重试");
-  } finally {
-    loading.value = false;
-  }
 };
 </script>
 

@@ -1,4 +1,5 @@
 import config from "@/utils/env.js";
+import { getToast } from "@/utils/toast.js";
 
 const BASE_URL = config.API_BASE_URL;
 
@@ -10,26 +11,18 @@ class HttpError extends Error {
   }
 }
 
-const handleError = (error, showErrorMessage) => {
+const handleError = (error, showErrorMessage, reject) => {
   if (showErrorMessage) {
     let errorMessage = "请求失败";
 
     if (error instanceof HttpError) {
       errorMessage = error.message;
-    } 
+    }
 
-    uni.showToast({
-      title: errorMessage,
-      icon: "none",
-      duration: 3000,
-    });
+    getToast()?.error(errorMessage);
   }
 
-  if (error instanceof HttpError) {
-    throw error;
-  } else {
-    throw new HttpError("网络错误", 500);
-  }
+  reject(error instanceof HttpError ? error : new HttpError("网络错误", 500));
 };
 
 const request = (config) => {
@@ -81,12 +74,13 @@ const request = (config) => {
               responseData?.message || "请求失败",
               responseData?.code || statusCode
             ),
-            showErrorMessage
+            showErrorMessage,
+            reject
           );
         }
       },
       fail: (err) => {
-        handleError(new HttpError(err.errMsg || "网络错误", 500), showErrorMessage);
+        handleError(new HttpError(err.errMsg || "网络错误", 500), showErrorMessage, reject);
       },
     });
   });

@@ -1,48 +1,27 @@
 <template>
-  <view>
+  <view class="login">
     <wd-toast />
-    <view>
-      <text>NEW APP</text>
-    </view>
+    <wd-navbar title="登录" safe-area-inset-top></wd-navbar>
 
-    <view>
-      <view>
-        <wd-input
-          v-model="formData.username"
-          placeholder="请输入账号"
-          clearable
-          no-border
-          prefix-icon="user"
-        />
+    <wd-form ref="form" :model="formData" custom-style="margin-top: 120rpx">
+      <wd-cell-group border>
+        <wd-input size="large" prefixIcon="user" prop="username" clearable v-model="formData.username"
+          placeholder="请输入用户名" :rules="[{ required: true, message: '请输入用户名' }]" />
+        <wd-input size="large" prefixIcon="lock-on" prop="password" show-password clearable v-model="formData.password"
+          placeholder="请输入密码" :rules="[{ required: true, message: '请输入密码' }]" />
+      </wd-cell-group>
+      <view class="form-item">
+        <wd-checkbox shape="square" v-model="rememberPassword">记住密码</wd-checkbox>
       </view>
-
-      <view>
-        <wd-input
-          v-model="formData.password"
-          placeholder="请输入密码"
-          show-password
-          clearable
-          no-border
-          prefix-icon="lock-on"
-        />
+      <view class="form-item">
+        <wd-slide-verify :width="slideVerifyWidth" @success="verifySuccess" />
       </view>
-
-      <view>
-        <view>
-          <wd-checkbox v-model="rememberPassword" @change="onRememberChange">记住密码</wd-checkbox>
-        </view>
+      <view class="form-item">
+        <wd-button size="large" type="primary" block :loading="loading" @click="handleLogin">
+          {{ loading ? '登录中...' : '登录' }}
+        </wd-button>
       </view>
-
-      <wd-button
-        type="primary"
-        block
-        size="large"
-        :loading="loading"
-        @click="handleLogin"
-      >
-        {{ loading ? '登录中...' : '登录' }}
-      </wd-button>
-    </view>
+    </wd-form>
   </view>
 </template>
 
@@ -54,8 +33,16 @@ import { storage } from "@/utils/storage.js";
 import { useToast } from "wot-design-uni";
 
 const toast = useToast();
+const form = ref(null);
 const loading = ref(false);
 const rememberPassword = ref(true);
+const verified = ref(false);
+const slideVerifyWidth = ref(350);
+
+const verifySuccess = () => {
+  console.log('verifySuccess');
+  verified.value = true;
+};
 
 const formData = reactive({
   username: "",
@@ -63,6 +50,9 @@ const formData = reactive({
 });
 
 onMounted(() => {
+  const sysInfo = uni.getSystemInfoSync();
+  slideVerifyWidth.value = (700 / 750) * sysInfo.windowWidth;
+
   const rememberedAccount = storage.getRememberedAccount();
   if (rememberedAccount.flag) {
     formData.username = rememberedAccount.username;
@@ -70,50 +60,52 @@ onMounted(() => {
   }
 });
 
-const onRememberChange = ({ value }) => {
-  if (!value) {
-    storage.clearRememberedAccount();
-  }
-};
-
 const handleLogin = () => {
-  const username = formData.username?.trim();
-  const password = formData.password?.trim();
-
-  if (!username || !password) {
-    toast.warning("请输入账号和密码");
+  if (!verified.value) {
+    toast.warning("请先完成滑动验证");
     return;
   }
 
-  loading.value = true;
+  form.value.validate().then(({ valid }) => {
+    if (!valid) return;
 
-  login({ userName: username, password: password })
-    .then((loginResponse) => {
-      const { accessToken, tokenType } = loginResponse;
-      userStore.setToken(`${tokenType} ${accessToken}`);
+    const username = formData.username?.trim();
+    const password = formData.password?.trim();
+    loading.value = true;
 
-      return getUserInfo();
-    })
-    .then((userInfo) => {
-      userStore.setUserInfo(userInfo);
-      userStore.setLoginStatus(true);
+    login({ userName: username, password: password })
+      .then((loginResponse) => {
+        const { accessToken, tokenType } = loginResponse;
+        userStore.setToken(`${tokenType} ${accessToken}`);
+        return getUserInfo();
+      })
+      .then((userInfo) => {
+        userStore.setUserInfo(userInfo);
+        userStore.setLoginStatus(true);
 
-      if (rememberPassword.value) {
-        storage.setRememberedAccount(username, password);
-      } else {
-        storage.clearRememberedAccount();
-      }
-
-      toast.success("登录成功");
-
-      setTimeout(() => {
-        uni.reLaunch({ url: "/pages/home/index" });
-      }, 1000);
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+        if (rememberPassword.value) {
+          storage.setRememberedAccount(username, password);
+        } else {
+          storage.clearRememberedAccount();
+        }
+        toast.success("登录成功");
+        setTimeout(() => {
+          uni.reLaunch({ url: "/pages/home/index" });
+        }, 1000);
+      })
+      .catch(() => { })
+      .finally(() => {
+        loading.value = false;
+      });
+  });
 };
 </script>
 
-
+<style lang="scss" scoped>
+.login {
+  .form-item {
+    width: 700rpx;
+    margin: 32rpx auto 0;
+  }
+}
+</style>

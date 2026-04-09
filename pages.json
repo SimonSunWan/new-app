@@ -1,0 +1,20 @@
+{
+  "pages": [
+    {
+      "path": "pages/login/index"
+    },
+    {
+      "path": "pages/home/index"
+    }
+  ],
+  "globalStyle": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F8F8F8"
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue"
+    }
+  }
+}

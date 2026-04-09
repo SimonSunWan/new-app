@@ -1,0 +1,7 @@
+{
+  "name": "new-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "wot-design-uni": "^1.14.0"
+  }
+}

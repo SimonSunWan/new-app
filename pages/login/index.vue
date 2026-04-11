@@ -1,27 +1,32 @@
 <template>
   <view class="login">
     <wd-toast />
-    <wd-navbar title="登录" safe-area-inset-top></wd-navbar>
-
-    <wd-form ref="form" :model="formData" custom-style="margin-top: 120rpx">
-      <wd-cell-group border>
-        <wd-input size="large" prefixIcon="user" prop="username" clearable v-model="formData.username"
-          placeholder="请输入用户名" :rules="[{ required: true, message: '请输入用户名' }]" />
-        <wd-input size="large" prefixIcon="lock-on" prop="password" show-password clearable v-model="formData.password"
-          placeholder="请输入密码" :rules="[{ required: true, message: '请输入密码' }]" />
-      </wd-cell-group>
-      <view class="form-item">
-        <wd-checkbox shape="square" v-model="rememberPassword">记住密码</wd-checkbox>
-      </view>
-      <view class="form-item">
-        <wd-slide-verify :width="slideVerifyWidth" @success="verifySuccess" />
-      </view>
-      <view class="form-item">
-        <wd-button size="large" type="primary" block :loading="loading" @click="handleLogin">
-          {{ loading ? '登录中...' : '登录' }}
-        </wd-button>
-      </view>
-    </wd-form>
+    <view class="logo-container">
+      <wd-img :width="100" :height="100" src="/static/logo.png" />
+    </view>
+    <view class="form-container">
+      <wd-form ref="form" :model="formData">
+        <wd-cell-group border>
+          <wd-input size="large" prop="username" clearable v-model="formData.username" placeholder="请输入用户名"
+            :rules="[{ required: true, message: '请输入用户名' }]" />
+          <wd-input size="large" prop="password" show-password clearable v-model="formData.password" placeholder="请输入密码"
+            :rules="[{ required: true, message: '请输入密码' }]" />
+        </wd-cell-group>
+        <view class="form-item flex between">
+          <wd-checkbox shape="square" v-model="rememberPassword">记住密码</wd-checkbox>
+          <wd-button type="text">忘记密码</wd-button>
+        </view>
+        <view class="form-item">
+          <wd-button size="large" type="primary" block :loading="loading" custom-class="custom-shadow"
+            @click="handleLogin">
+            {{ loading ? '登录中...' : '登录' }}
+          </wd-button>
+        </view>
+        <view class="form-item flex">
+          <text>还没有账号？</text><wd-button type="text">注册</wd-button>
+        </view>
+      </wd-form>
+    </view>
   </view>
 </template>
 
@@ -36,12 +41,6 @@ const toast = useToast();
 const form = ref(null);
 const loading = ref(false);
 const rememberPassword = ref(true);
-const verified = ref(false);
-const slideVerifyWidth = ref(350);
-
-const verifySuccess = () => {
-  verified.value = true;
-};
 
 const formData = reactive({
   username: "",
@@ -49,9 +48,6 @@ const formData = reactive({
 });
 
 onMounted(() => {
-  const sysInfo = uni.getSystemInfoSync();
-  slideVerifyWidth.value = (700 / 750) * sysInfo.windowWidth;
-
   const rememberedAccount = storage.getRememberedAccount();
   if (rememberedAccount.flag) {
     formData.username = rememberedAccount.username;
@@ -60,11 +56,6 @@ onMounted(() => {
 });
 
 const handleLogin = () => {
-  if (!verified.value) {
-    toast.warning("请先完成滑动验证");
-    return;
-  }
-
   form.value.validate().then(({ valid }) => {
     if (!valid) return;
 
@@ -102,9 +93,34 @@ const handleLogin = () => {
 
 <style lang="scss" scoped>
 .login {
-  .form-item {
-    width: 700rpx;
-    margin: 32rpx auto 0;
+  .logo-container {
+    margin: 160rpx 0 80rpx;
+    text-align: center;
   }
+
+  .form-container {
+    padding: 0 40rpx;
+
+    .form-item {
+      font-size: 28rpx;
+      margin: 40rpx auto 0;
+
+      :deep() {
+        .custom-shadow {
+          box-shadow: 0 6rpx 2rpx -4rpx rgb(0 0 0 / 20%), 0 4rpx 4rpx 0 rgb(0 0 0 / 14%), 0 2rpx 10rpx 0 rgb(0 0 0 / 12%);
+        }
+      }
+    }
+
+    .flex {
+      display: flex;
+      align-items: center;
+    }
+
+    .between {
+      justify-content: space-between;
+    }
+  }
+
 }
 </style>

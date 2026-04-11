@@ -5,11 +5,27 @@
     },
     {
       "path": "pages/home/index"
+    },
+    {
+      "path": "pages/mine/index"
     }
   ],
   "globalStyle": {
     "navigationStyle": "custom",
     "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "custom": true,
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
   },
   "easycom": {
     "autoscan": true,

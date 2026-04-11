@@ -1,7 +1,6 @@
 <template>
-  <view class="home">
-    <wd-toast />
-    <wd-navbar title="首页" :safeAreaInsetTop="true"></wd-navbar>
+  <view class="mine">
+    <wd-navbar title="我的" :safeAreaInsetTop="true"></wd-navbar>
     <wd-tabbar v-model="tabbar" fixed bordered safeAreaInsetBottom placeholder @change="onChange">
       <wd-tabbar-item title="首页" icon="home"></wd-tabbar-item>
       <wd-tabbar-item title="我的" icon="user-circle"></wd-tabbar-item>
@@ -12,18 +11,16 @@
 <script setup>
 import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import { useToast } from "wot-design-uni";
 
-const toast = useToast();
-const tabbar = ref(0);
+const tabbar = ref(1);
 
 onShow(() => {
-  tabbar.value = 0;
+  tabbar.value = 1;
 });
 
 const onChange = ({ value }) => {
-  if (value === 1) {
-    uni.switchTab({ url: "/pages/mine/index" });
+  if (value === 0) {
+    uni.switchTab({ url: "/pages/home/index" });
   }
 };
 </script>
